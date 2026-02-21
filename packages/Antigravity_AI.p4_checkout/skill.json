@@ -1,0 +1,9 @@
+{
+    "id": "org.antigravity.p4-checkout",
+    "name": "p4_checkout",
+    "author": "Antigravity AI",
+    "description": "全局技能：自动将文件添加/检出到合适的 Perforce Changelist",
+    "tags": ["p4", "perforce", "vcs", "checkout"],
+    "version": "1.0.0",
+    "vcs": "p4"
+}
