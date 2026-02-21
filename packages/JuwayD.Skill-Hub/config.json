@@ -1,0 +1,14 @@
+{
+    "registry": {
+        "url": "https://github.com/JuwayD/antigravity-skills-registry.git",
+        "type": "git"
+    },
+    "user": {
+        "author_default": "JuwayD",
+        "runtime_preference": "auto"
+    },
+    "local": {
+        "skill_path": "c:\\Users\\一天不说骚话就浑身难受\\.gemini\\antigravity\\skills",
+        "install_default": "workspace"
+    }
+}
