@@ -1,0 +1,14 @@
+{
+    "id": "org.antigravity.code-analyst",
+    "name": "Code Analyst",
+    "author": "Antigravity AI",
+    "description": "阅读源代码并生成详细的介绍文档，理清逻辑链和各模块功能。",
+    "tags": [
+        "code",
+        "analysis",
+        "documentation",
+        "markdown"
+    ],
+    "version": "1.0.0",
+    "vcs": "git"
+}
