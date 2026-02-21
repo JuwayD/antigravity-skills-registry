@@ -1,0 +1,15 @@
+{
+    "id": "org.antigravity.setup-p4config",
+    "name": "setup_p4config",
+    "author": "Antigravity AI",
+    "description": "全局技能：修复并配置多工作区下的 Perforce 环境探测",
+    "tags": [
+        "p4",
+        "perforce",
+        "vcs",
+        "config",
+        "workspace"
+    ],
+    "version": "1.0.0",
+    "vcs": "p4"
+}
