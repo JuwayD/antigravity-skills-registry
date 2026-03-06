@@ -50,20 +50,20 @@ description: 一套通用的 Unity AI 托管开发方法论，定义了“编写
   4. **静默执行 (Silent Execution) [MCP-REQUIRED]**: 编译通过后，AI 通过 `mcp_unityMCP` 提供的执行桥接器（如 `execute_custom_tool` 或 `execute_menu_item`）触发功能逻辑。
   5. **数据确认 (State Verification) [MCP-REQUIRED]**: AI 访问验证中台（通常通过 `execute_custom_tool` 查询），对比“实际数据”与“预期数据”。
   6. **可视化存档 (Visual Capture) [MCP-REQUIRED]**: 在关键逻辑验证点（如刷怪成功后），必须使用 `mcp_unityMCP` 的 `screenshot` 功能进行实时记录。
-  7. **结果审计与归档 (Reporting)**:
-     * **专用目录**：所有报告、日志及截图必须存放在独立的验证目录中（如 `Assets/VerificationReports/Phase_X/`）。
-     * **结构化关联**：报告中必须明确指出何时进行了截图、截图文件名及其对应的验证点。
+  7. **日志与证据备份 (Log Archiving) [MCP-REQUIRED]**: **必须将 `Editor.log` 拷贝一份至报告目录**，作为该次验证的原始执行记录。
+  8. **结果审计与归档 (Reporting)**:
+     * **专用目录**：所有报告、日志及截图必须存放在独立的验证目录中 (如 `Assets/VerificationReports/Phase_X/`)。
+     * **结构化关联**：报告中必须明确指出何时进行了截图、截图文件名及其对应的验证点，并关联备份的日志文件。
 
 ## 💡 给 AI 的实践准则 (Best Practices)
 
-* **不要猜测**：如果验证回传的数据不符合预期，优先检查“验证工具本身”是否可靠，再检查“逻辑代码”。
-* **最小化依赖**：在构建 AI 专用验证工具时，尽量避免依赖复杂的 UI 状态，优先通过底层数据结构（如 Singleton Managers）获取信息。
-* **资产自动化**：对于 ScriptableObject、Prefab 等非代码逻辑，AI 应优先通过编辑器脚本进行自动化生成，而非指望人类手动创建。
 * **异步依赖处理 (Handling Async)**：
   * **不要等待阻塞**：如果 MCP 工具返回 `job_id`，AI 应立即记录状态并进入下一轮次，而非卡在原地。
   * **主动轮询**：在后续轮次的“数据确认”阶段，优先通过 `get_test_job` 或类似工具检查异步任务是否完成。
   * **状态机思维**：将任务拆分为“提交 -> 准备 -> 运行中 -> 完成 -> 结果处理”的状态流，未完成时保持当前 Task 状态。
-* **可追溯性 (Traceability)**：除报告外，AI 必须将验证过程中的关键输出导出为独立的日志文件（如 `.log` 或 `.txt`），并随报告一同归档。
+* **可追溯性与完整性 (Full Traceability)**：
+  * **原始日志**：AI 必须将验证过程中的 Unity 原始输出 (`Editor.log`) 备份至归档目录。
+  * **AI 过程日志**：如有关键推理过程或工具输出，也应导出为独立的 `.log` 或 `.txt` 文件并随报告一同归档。
 
 ---
 *Methodology defined by Antigravity AI — Optimized for Unattended Development.*
