@@ -31,6 +31,7 @@ description: 一套通用的 Unity AI 托管开发方法论，定义了“编写
 * **设计原则**：
   * **精简接口**：避免为每个变量创建方法，建议使用 `Query(key, params)` 模式。
   * **零副作用**：查询接口必须是纯只读的，不能因为查询而改变游戏状态。
+  * **环境隔离 (Editor-Only)**：核心 AI 验证逻辑及其配套工具**必须放置在 `Editor` 文件夹下**，或使用 `#if UNITY_EDITOR` 宏包裹。严禁 AI 工具干扰包体大小或运行时业务逻辑。
 
 ### C. 动作执行桥接 (Execution Bridge)
 
@@ -48,7 +49,10 @@ description: 一套通用的 Unity AI 托管开发方法论，定义了“编写
   3. **编译自检 (Compile Check)**: AI 完成写入后，**主动搜索错误特征**（如 `error CS`），发现红字则立即回归编写阶段进行修复。
   4. **静默执行 (Silent Execution) [MCP-REQUIRED]**: 编译通过后，AI 通过 `mcp_unityMCP` 提供的执行桥接器（如 `execute_custom_tool` 或 `execute_menu_item`）触发功能逻辑。
   5. **数据确认 (State Verification) [MCP-REQUIRED]**: AI 访问验证中台（通常通过 `execute_custom_tool` 查询），对比“实际数据”与“预期数据”。
-  6. **结果审计 (Reporting)**: AI 将验证过程与结果记录到持久化文件中（如开发报告），作为人类审核的依据。
+  6. **可视化存档 (Visual Capture) [MCP-REQUIRED]**: 在关键逻辑验证点（如刷怪成功后），必须使用 `mcp_unityMCP` 的 `screenshot` 功能进行实时记录。
+  7. **结果审计与归档 (Reporting)**:
+     * **专用目录**：所有报告、日志及截图必须存放在独立的验证目录中（如 `Assets/VerificationReports/Phase_X/`）。
+     * **结构化关联**：报告中必须明确指出何时进行了截图、截图文件名及其对应的验证点。
 
 ## 💡 给 AI 的实践准则 (Best Practices)
 
@@ -59,6 +63,7 @@ description: 一套通用的 Unity AI 托管开发方法论，定义了“编写
   * **不要等待阻塞**：如果 MCP 工具返回 `job_id`，AI 应立即记录状态并进入下一轮次，而非卡在原地。
   * **主动轮询**：在后续轮次的“数据确认”阶段，优先通过 `get_test_job` 或类似工具检查异步任务是否完成。
   * **状态机思维**：将任务拆分为“提交 -> 准备 -> 运行中 -> 完成 -> 结果处理”的状态流，未完成时保持当前 Task 状态。
+* **可追溯性 (Traceability)**：除报告外，AI 必须将验证过程中的关键输出导出为独立的日志文件（如 `.log` 或 `.txt`），并随报告一同归档。
 
 ---
 *Methodology defined by Antigravity AI — Optimized for Unattended Development.*
