@@ -1,0 +1,13 @@
+{
+    "name": "unity-ai-closed-loop",
+    "version": "1.0.0",
+    "description": "一套通用的 Unity AI 托管开发方法论，定义了“编写-编译自检-静默执行-数据验证-资产同步”的自动化闭环逻辑。",
+    "author": "JuwayD",
+    "keywords": [
+        "unity",
+        "ai",
+        "automation",
+        "closed-loop",
+        "mcp"
+    ]
+}
