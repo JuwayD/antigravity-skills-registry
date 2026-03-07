@@ -12,7 +12,10 @@ description: 一套通用的 Unity AI 托管开发方法论，定义了“编写
 1. **可感知性 (Visibility)**: AI 无法直接“看到”运行效果。系统必须将“视觉表现”转化为“结构化数据”或“可解析日志”。
 2. **可干预性 (Controllability)**: AI 必须具备绕过 UI 操作（如点击按钮、拖拽物体），直接通过代码或指令触发核心逻辑的能力。
 3. **自愈能力 (Self-Healing)**: AI 必须能够感知编译报错或运行时异常，并具备根据错误上下文自动尝试修正代码的闭环逻辑。
-4. **MCP 桥接核心 (MCP-Centric)**: 所有外部交互（场景管理、对象操作、测试执行）**必须**通过 MCP (Model Context Protocol) 协议实现。**强烈推荐使用 `unityMCP https://github.com/CoplayDev/unity-mcp/tree/beta` 服务器**，它是本工作流实现“AI 托管”的基石。
+4. **MCP 桥接核心 (MCP-Centric)**: 所有外部交互（场景管理、对象操作、测试执行）**必须**通过 MCP (Model Context Protocol) 协议实现。**必需使用 `unityMCP https://github.com/CoplayDev/unity-mcp/tree/beta` 服务器**，它是本工作流实现“AI 托管”的基石。
+5. **环境隔离 (Environment Separation)**:
+    - **资产持久化 (Edit Mode)**: 涉及材质、字体、NavMesh、Prefab、.asset后缀文件等资产的修改必须在 Edit Mode 下执行并保存 (`AssetDatabase.SaveAssets`)。
+    - **逻辑验证 (Play Mode)**: 涉及游戏内数据,状态的验证必须在 Play Mode 下进行。
 
 ## 🧱 闭环基础设施架构 (Infrastructure Methodology)
 
@@ -20,27 +23,27 @@ description: 一套通用的 Unity AI 托管开发方法论，定义了“编写
 
 ### A. 自主错误探测层 (Autonomous Error Detection)
 
-* **方法论**：AI 必须有手段在不询问人类的情况下获知“代码工作是否正常”。
-* **实现建议**：
-  * **静态检查**：监控本地 `Editor.log` 或通过 CLI 执行 `dotnet build`。
-  * **运行时监控**：实现一套能够捕获 `Debug.LogException` 并将其格式化为 AI 可识别指令的日志监听器。
+- **方法论**：AI 必须有手段在不询问人类的情况下获知“代码工作是否正常”。
+- **实现建议**：
+  - **静态检查**：监控本地 `Editor.log` 或通过 CLI 执行 `dotnet build`。
+  - **运行时监控**：实现一套能够捕获 `Debug.LogException` 并将其格式化为 AI 可识别指令的日志监听器。
 
 ### B. 状态验证中台 (Unified Data Verification Hub)
 
-* **方法论**：提供一个“单一事实来源”(Single Source of Truth)，让 AI 可以通过键值查询了解游戏世界的瞬时状态。
-* **设计原则**：
-  * **精简接口**：避免为每个变量创建方法，建议使用 `Query(key, params)` 模式。
-  * **零副作用**：查询接口必须是纯只读的，不能因为查询而改变游戏状态。
-  * **环境隔离 (Editor-Only)**：核心 AI 验证逻辑及其配套工具**必须放置在 `Editor` 文件夹下**，或使用 `#if UNITY_EDITOR` 宏包裹。严禁 AI 工具干扰包体大小或运行时业务逻辑。
+- **方法论**：提供一个“单一事实来源”(Single Source of Truth)，让 AI 可以通过键值查询了解游戏世界的瞬时状态。
+- **设计原则**：
+  - **精简接口**：避免为每个变量创建方法，建议使用 `Query(key, params)` 模式。
+  - **零副作用**：查询接口必须是纯只读的，不能因为查询而改变游戏状态。
+  - **环境隔离 (Editor-Only)**：核心 AI 验证逻辑及其配套工具**必须放置在 `Editor` 文件夹下**，或使用 `#if UNITY_EDITOR` 宏包裹。严禁 AI 工具干扰包体大小或运行时业务逻辑。
 
 ### C. 动作执行桥接 (Execution Bridge)
 
-* **方法论**：建立一个允许 AI “跨时空”触发编辑器或运行时逻辑的通道。
-* **设计原则**：
-  * **无感触发**：支持通过菜单路径 (MenuPath) 或方法全名 (Fully Qualified Name) 触发逻辑。
-  * **隔离性**：执行逻辑应尽量解耦输入层（Input），确保逻辑可以直接被脚本/MCP 指令调用。
-  * **插件化扩展 (CustomTools)**：核心验证逻辑（如本项目的 `bd_tool`）应通过 `execute_custom_tool` 注册。AI 必须了解如何通过自定义指令扩展 Unity 的原生操作,参考文档`https://github.com/CoplayDev/unity-mcp/blob/beta/docs/reference/CUSTOM_TOOLS.md`。
-  * **异步确认**：对于耗时操作（如测试运行、大批量资产生成），执行通道必须提供任务句柄或轮询机制（如 `job_id`），以便 AI 进行后续追踪。
+- **方法论**：建立一个允许 AI “跨时空”触发编辑器或运行时逻辑的通道。
+- **设计原则**：
+  - **无感触发**：支持通过菜单路径 (MenuPath) 或方法全名 (Fully Qualified Name) 触发逻辑。
+  - **隔离性**：执行逻辑应尽量解耦输入层（Input），确保逻辑可以直接被脚本/MCP 指令调用。
+  - **插件化扩展 (CustomTools)**：核心验证逻辑（如本项目的 `bd_tool`）应通过 `execute_custom_tool` 注册。AI 必须了解如何通过自定义指令扩展 Unity 的原生操作,参考文档`https://github.com/CoplayDev/unity-mcp/blob/beta/docs/reference/CUSTOM_TOOLS.md`。
+  - **异步确认**：对于耗时操作（如测试运行、大批量资产生成），执行通道必须提供任务句柄或轮询机制（如 `job_id`），以便 AI 进行后续追踪。
 
 ## 🔄 标准闭环工作流 (Standard Workflow)
 
@@ -49,21 +52,23 @@ description: 一套通用的 Unity AI 托管开发方法论，定义了“编写
   3. **编译自检 (Compile Check)**: AI 完成写入后，**主动搜索错误特征**（如 `error CS`），发现红字则立即回归编写阶段进行修复。
   4. **静默执行 (Silent Execution) [MCP-REQUIRED]**: 编译通过后，AI 通过 `mcp_unityMCP` 提供的执行桥接器（如 `execute_custom_tool` 或 `execute_menu_item`）触发功能逻辑。
   5. **数据确认 (State Verification) [MCP-REQUIRED]**: AI 访问验证中台（通常通过 `execute_custom_tool` 查询），对比“实际数据”与“预期数据”。
-  6. **可视化存档 (Visual Capture) [MCP-REQUIRED]**: 在关键逻辑验证点（如刷怪成功后），必须使用 `mcp_unityMCP` 的 `screenshot` 功能进行实时记录。
+  6. **可视化存档 (Visual Capture) [MCP-REQUIRED]**:
+     - 在关键逻辑验证点（如刷怪成功后），必须使用 `mcp_unityMCP` 的 `screenshot` 功能进行实时记录。
+     - **UI/视觉专项**：对于 UI、特效、渲染等具备可视化需求的功能，**必须**使用截图进行自我验证。截图后需在报告中通过文字说明截图中的视觉表现是否符合预期（如：“图中左上角正确显示了金币余额为 100”）。
   7. **日志与证据备份 (Log Archiving) [MCP-REQUIRED]**: **必须将 `Editor.log` 拷贝一份至报告目录**，作为该次验证的原始执行记录。
   8. **结果审计与归档 (Reporting)**:
-     * **专用目录**：所有报告、日志及截图必须存放在独立的验证目录中 (如 `Assets/VerificationReports/Phase_X/`)。
-     * **结构化关联**：报告中必须明确指出何时进行了截图、截图文件名及其对应的验证点，并关联备份的日志文件。
+     - **专用目录**：所有报告、日志及截图必须存放在独立的验证目录中 (如 `Assets/VerificationReports/Phase_X/`)。
+     - **结构化关联**：报告中必须明确指出何时进行了截图、截图文件名及其对应的验证点，并关联备份的日志文件。
 
 ## 💡 给 AI 的实践准则 (Best Practices)
 
-* **异步依赖处理 (Handling Async)**：
-  * **不要等待阻塞**：如果 MCP 工具返回 `job_id`，AI 应立即记录状态并进入下一轮次，而非卡在原地。
-  * **主动轮询**：在后续轮次的“数据确认”阶段，优先通过 `get_test_job` 或类似工具检查异步任务是否完成。
-  * **状态机思维**：将任务拆分为“提交 -> 准备 -> 运行中 -> 完成 -> 结果处理”的状态流，未完成时保持当前 Task 状态。
-* **可追溯性与完整性 (Full Traceability)**：
-  * **原始日志**：AI 必须将验证过程中的 Unity 原始输出 (`Editor.log`) 备份至归档目录。
-  * **AI 过程日志**：如有关键推理过程或工具输出，也应导出为独立的 `.log` 或 `.txt` 文件并随报告一同归档。
+- **异步依赖处理 (Handling Async)**：
+  - **不要等待阻塞**：如果 MCP 工具返回 `job_id`，AI 应立即记录状态并进入下一轮次，而非卡在原地。
+  - **主动轮询**：在后续轮次的“数据确认”阶段，优先通过 `get_test_job` 或类似工具检查异步任务是否完成。
+  - **状态机思维**：将任务拆分为“提交 -> 准备 -> 运行中 -> 完成 -> 结果处理”的状态流，未完成时保持当前 Task 状态。
+- **可追溯性与完整性 (Full Traceability)**：
+  - **原始日志**：AI 必须将验证过程中的 Unity 原始输出 (`Editor.log`) 备份至归档目录。
+  - **AI 过程日志**：如有关键推理过程或工具输出，也应导出为独立的 `.log` 或 `.txt` 文件并随报告一同归档。
 
 ---
 *Methodology defined by Antigravity AI — Optimized for Unattended Development.*
